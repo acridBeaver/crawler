@@ -6,6 +6,5 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0',
     'Connection': 'keep - alive',
 }
-
-#c = requests.get('https://github.com', params=HEADERS)
-g = requests.get('https:// ulearn.me/ ')
+g = 'gogogoo'
+print(g.endswith(('g', 'o')))

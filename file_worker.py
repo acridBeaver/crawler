@@ -21,11 +21,6 @@ def write_file(path, data):
     f.close()
 
 
-def append_to_file(path, data):
-    with open(path, 'a') as file:
-        file.write(data + '\n')
-
-
 def file_to_set(file_name):
     result = set()
     with open(file_name, 'rt') as text:

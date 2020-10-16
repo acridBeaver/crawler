@@ -11,22 +11,25 @@ HEADERS = {
 
 class LinkFinder:
 
-	def __init__(self, base_url: str, host_name: str, url: URL):
+	def __init__(self, domain_name: str, url: URL):
 		self.url = url
-		self.base_url = base_url
-		self.host_name = host_name
-		self.link = url.__str__()
+		self.domain_name = domain_name
+		self.host_name = self.get_host_name()
+		self.link = str(url)
 		self.links = set()
+
+	def get_host_name(self):
+		return self.url.scheme + '://' + self.url.host
 
 	def find_links(self, html: str):
 		soup = BeautifulSoup(html, 'html.parser')
 		for obj in soup.find_all('a', href=True):
 			link = obj['href']
-			if link.endswith('.jpg') or link.endswith('.pptx'):
+			if link.endswith(('.jpg', '.pptx')):
 				continue
-			if self.base_url in link and link.startswith(self.url.scheme):
+			if self.domain_name in link and link.startswith(self.url.scheme):
 				self.links.add(link)
-			elif link[0:8] != 'https://' and link[0:7] != 'http://':
+			elif not link.startswith(('https://', 'http://')):
 				if not link.startswith('/'):
 					link = '/' + link
 				self.links.add(self.host_name + link)
@@ -45,14 +48,3 @@ class LinkFinder:
 		except ConnectionError:
 			return None
 		return result
-
-
-
-
-#c = get_content('https://ru.wikipedia.org#Ссылки')
-#i = find_links(c.text, 'https://ru.wikipedia.org')
-#url = URL('https://ru.wikipedia.org/wiki/%D0%92%D0%B8%D0%BA%D0%B8')
-#c = get_links('https://ru.wikipedia.org')
-
-#print(url.name)
-
