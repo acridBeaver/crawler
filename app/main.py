@@ -1,11 +1,10 @@
 import threading
 from queue import Queue
-import file_worker
-from spider import Spider
+from app import file_worker
+from app.spider import Spider
 from yarl import URL
 
 NUMBER_OF_THREADS = 8
-queue = Queue()
 
 
 def get_domain_name(url: URL):
@@ -13,7 +12,7 @@ def get_domain_name(url: URL):
     return input_host[-2] + '.' + input_host[-1]
 
 
-def crawl(queue_file):
+def crawl(queue_file: str):
     queue_links = file_worker.file_to_set(queue_file)
     if len(queue_links) > 0:
         print('i am alive')
@@ -41,6 +40,11 @@ def work():
         queue.task_done()
 
 
+def update_queue(queue):
+    for link in file_worker.file_to_set(queue_file):
+        queue.append(link)
+
+
 if __name__ == '__main__':
     base_url = input('введите ссылку для кравлинга \n')
     base_url = base_url[0:-1]
@@ -51,5 +55,12 @@ if __name__ == '__main__':
     file_worker.create_project_dir(name)
     file_worker.create_data_files(name, base_url)
     spider = Spider(name, domain_name, base_url)
-    create_workers()
-    crawl(queue_file)
+    queue = []
+    update_queue(queue)
+    while len(queue) > 0:
+        print('jopa')
+        while len(queue) > 0:
+            url = queue.pop()
+            print('crawling ' + url)
+            spider.crawl_page(url)
+        update_queue(queue)

@@ -1,10 +1,6 @@
-from yarl import URL
-import requests
-from file_worker import *
+import pytest
+from app.link_finder import LinkFinder
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0',
-    'Connection': 'keep - alive',
-}
-g = 'gogogoo'
-print(g.endswith(('g', 'o')))
+with open(file_name, 'w') as file:
+    for url in urls_set:
+        file.write(url + '\n')
