@@ -49,7 +49,7 @@ if __name__ == '__main__':
     base_url = input('введите ссылку для кравлинга \n')
     base_url = base_url[0:-1]
     url = URL(base_url)
-    name = 'hop'
+    name = 'dir'
     queue_file = name + '/queue.txt'
     domain_name = get_domain_name(url)
     file_worker.create_project_dir(name)
@@ -58,9 +58,9 @@ if __name__ == '__main__':
     queue = []
     update_queue(queue)
     while len(queue) > 0:
-        print('jopa')
         while len(queue) > 0:
             url = queue.pop()
             print('crawling ' + url)
             spider.crawl_page(url)
         update_queue(queue)
+    print('task done')
