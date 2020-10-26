@@ -1,15 +1,15 @@
 import threading
 from queue import Queue
-from app import file_worker
-from app.spider import Spider
+from crawler import file_worker
+from crawler.spider import Spider
 from yarl import URL
 
 NUMBER_OF_THREADS = 8
 
 
 def get_domain_name(url: URL):
-    input_host = str.split(url.host, '.')
-    return input_host[-2] + '.' + input_host[-1]
+    *_, domain, root_domain = url.host.split('.')
+    return f'{domain}.{root_domain}'
 
 
 def crawl(queue_file: str):
@@ -47,7 +47,7 @@ def update_queue(queue):
 
 if __name__ == '__main__':
     base_url = input('введите ссылку для кравлинга \n')
-    base_url = base_url[0:-1]
+    base_url = base_url[:-1]
     url = URL(base_url)
     name = 'dir'
     queue_file = name + '/queue.txt'

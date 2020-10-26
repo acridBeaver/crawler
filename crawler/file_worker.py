@@ -16,17 +16,13 @@ def create_data_files(site_name, base_url):
 
 
 def write_file(path, data):
-    f = open(path, 'w')
-    f.write(data)
-    f.close()
+    with open(path, 'w') as f:
+        f.write(data)
 
 
 def file_to_set(file_name):
-    result = set()
-    with open(file_name, 'rt') as text:
-        for line in text:
-            result.add(line.replace('\n', ''))
-    return result
+    with open(file_name, 'r') as text:
+        return set(line.rstrip() for line in text)
 
 
 def set_to_file(file_name, urls_set):

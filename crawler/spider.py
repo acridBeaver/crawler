@@ -1,5 +1,5 @@
-from app.file_worker import *
-from app.link_finder import LinkFinder
+from crawler.file_worker import *
+from crawler.link_finder import LinkFinder
 from yarl import URL
 import threading
 

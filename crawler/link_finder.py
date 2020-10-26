@@ -1,3 +1,4 @@
+import yarl
 from yarl import URL
 import requests
 from bs4 import BeautifulSoup
@@ -27,16 +28,18 @@ class LinkFinder:
 			link = obj['href']
 			if link.endswith(('.jpg', '.pptx')):
 				continue
+			link = URL(link)
 			if self.domain_name in link and link.startswith(self.url.scheme):
 				self.links.add(link)
-			elif not link.startswith(('https://', 'http://')):
+			elif link.scheme is not ('https://', 'http://'):
 				if not link.startswith('/'):
-					link = '/' + link
+					parent_link = yarl.URL()
+					new_link = parent_link.parent / link
 				self.links.add(self.host_name + link)
 
 	def get_links(self):
 		site_info = self.get_content(self.link)
-		if site_info.status_code != 200 or site_info is None:
+		if site_info is None or site_info.status_code != 200:
 			return
 		html = site_info.text
 		self.find_links(html)
