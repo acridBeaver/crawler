@@ -1,41 +1,100 @@
-from app.file_worker import *
-from app.link_finder import LinkFinder
 from yarl import URL
-import threading
+from bs4 import BeautifulSoup
+from multiprocessing import Queue
+import queue
+from app.robotstxt_parser import RobotsTxtParser
+import app.file_worker as file_worker
+from multiprocessing.pool import ThreadPool
+import requests
+
+DISALLOW_ENDS = ('.jpg', '.png', '.pptx', '.txt', 'xml')
 
 
 class Spider:
-    queue = set()
-    crawled = set()
+    pool = ThreadPool(5)
+    count = 0
 
-    def __init__(self, project_name: str, domain_name: str, base_url: str):
-        self.project_name = project_name
+    def __init__(self,
+                 domain_name: str,
+                 base_url: str,
+                 robots_parser: RobotsTxtParser,
+                 deep: int,
+                 save: bool):
+        self.scheme = URL(base_url).scheme
         self.domain_name = domain_name
-        self.queue_file = self.project_name + '/queue.txt'
-        self.crawled_file = self.project_name + '/crawled.txt'
-        self.boot()
+        self.robots_parser = robots_parser
+        self.queue = Queue()
+        self.crawled = []
+        self.working_links = set()
+        self.save = save
+        self.deep = deep
         self.crawl_page(base_url)
 
-    def boot(self):
-        self.queue = file_to_set(self.queue_file)
-        self.crawled = file_to_set(self.crawled_file)
-
-    def crawl_page(self, url):
-        link_finder = LinkFinder(self.domain_name, URL(url))
-        link_finder.get_links()
-        self.queue.update(self.check_new_links(link_finder.links))
-        self.queue.remove(url)
-        self.crawled.add(url)
-        self.update_files()
+    def crawl_page(self, link):
+        self.count += 1
+        self.deep -= 1
+        print(str(self.count) + ')crawling: ' + link)
+        new_links = self.get_links(URL(link))
+        self.check_new_links(new_links)
+        self.crawled.append(link)
 
     def check_new_links(self, links):
-        result = set()
         for link in links:
-            if link in self.crawled:
+            if link in self.working_links:
                 continue
-            result.add(link)
+            if self.robots_parser.cant_fetch(link):
+                continue
+            self.working_links.add(link)
+            self.queue.put(link)
+
+    def get_links(self, url: URL) -> set:
+        site_info = self.get_content(str(url))
+        if site_info is None or site_info.status_code != 200:
+            set()
+        html = site_info.text
+        if self.save:
+            file_worker.write_file('hop/' + url.human_repr().replace('/', '') + '.txt', html)
+        return self.find_links(html, url)
+
+    @staticmethod
+    def get_host_name(url: URL):
+        return str(url.origin())
+
+    def find_links(self, html: str, url: URL) -> set:
+        result = set()
+        host_name = self.get_host_name(url)
+        soup = BeautifulSoup(html, 'html.parser')
+        for obj in soup.find_all('a', href=True):
+            link = obj['href']
+            if link.endswith(DISALLOW_ENDS) or link.startswith('#'):
+                continue
+            link = URL(link)
+            if self.domain_name in link.human_repr() and link.human_repr().startswith(url.scheme):
+                result.add(self.get_normal_link(link))
+            elif link.scheme == '':
+                if not link.human_repr().startswith('/'):
+                    result.add(url.human_repr() + link.human_repr())
+                else:
+                    result.add(host_name + link.human_repr())
         return result
 
-    def update_files(self):
-        set_to_file(self.queue_file, self.queue)
-        set_to_file(self.crawled_file, self.crawled)
+    @staticmethod
+    def get_normal_link(url: URL) -> str:
+        return str(url.build(scheme=url.scheme, host=url.host, path=url.path, query=url.query))
+
+    @staticmethod
+    def get_content(link):
+        try:
+            result = requests.get(link)
+        except Exception as e:
+            print(f'{type(e)}: {str(e)} in Spider.get_content({link})')
+            return None
+        return result
+
+    def start(self):
+        while self.deep > 0:
+            try:
+                url = self.queue.get(timeout=10)
+            except queue.Empty:
+                break
+            self.pool.apply_async(self.crawl_page, (url,))

@@ -1,2 +1,13 @@
 # Default ignored files
 /workspace.xml
+.idea/crawler.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/rSettings.xml
+.idea/vcs.xml
+app/__pycache__/__init__.cpython-37.pyc
+app/__pycache__/file_worker.cpython-37.pyc
+app/__pycache__/robotstxt_parser.cpython-37.pyc
+app/__pycache__/spider.cpython-37.pyc
+.DS_Store
