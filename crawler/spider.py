@@ -2,8 +2,8 @@ from yarl import URL
 from bs4 import BeautifulSoup
 from multiprocessing import Queue
 import queue
-from app.robotstxt_parser import RobotsTxtParser
-import app.file_worker as file_worker
+from crawler.robotstxt_parser import RobotsTxtParser
+import crawler.file_worker as file_worker
 from multiprocessing.pool import ThreadPool
 import requests
 

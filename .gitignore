@@ -6,8 +6,8 @@
 .idea/modules.xml
 .idea/rSettings.xml
 .idea/vcs.xml
-app/__pycache__/__init__.cpython-37.pyc
-app/__pycache__/file_worker.cpython-37.pyc
-app/__pycache__/robotstxt_parser.cpython-37.pyc
-app/__pycache__/spider.cpython-37.pyc
+crawler/__pycache__/__init__.cpython-37.pyc
+crawler/__pycache__/file_worker.cpython-37.pyc
+crawler/__pycache__/robotstxt_parser.cpython-37.pyc
+crawler/__pycache__/spider.cpython-37.pyc
 .DS_Store

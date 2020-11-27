@@ -2,9 +2,9 @@ import argparse
 from queue import Queue
 from yarl import URL
 
-from app import file_worker
-from app.robotstxt_parser import RobotsTxtParser
-from app.spider import Spider
+from crawler import file_worker
+from crawler.robotstxt_parser import RobotsTxtParser
+from crawler.spider import Spider
 
 
 def get_domain_name(url: URL) -> str:

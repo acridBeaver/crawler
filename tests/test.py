@@ -1,8 +1,8 @@
 import unittest
 from collections import namedtuple
 from yarl import URL
-from app.spider import Spider
-from app.robotstxt_parser import RobotsTxtParser
+from crawler.spider import Spider
+from crawler.robotstxt_parser import RobotsTxtParser
 
 TestData = namedtuple('TestData', ['html', 'expected'])
 
