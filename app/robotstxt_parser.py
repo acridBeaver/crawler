@@ -26,16 +26,14 @@ class RobotsTxtParser:
                     break
                 params = line.rsplit(' ', maxsplit=1)
                 if params[0] == 'Disallow:':
-                    self.disallow_links.append(params[1].strip())
+                    self.disallow_links.append(params[1].strip().replace('*', ''))
                 if params[0] == 'Allow:':
-                    self.allow_links.append(params[1].strip())
-        print(self.allow_links)
-        print(self.disallow_links)
+                    self.allow_links.append(params[1].strip().replace('*', ''))
 
     def cant_fetch(self, link):
-        for part in self.disallow_links:
-            if part in link:
-                for part2 in self.allow_links:
-                    if part2 in link:
+        for disallow in self.disallow_links:
+            if disallow in link:
+                for allow in self.allow_links:
+                    if allow in link:
                         return False
                 return True

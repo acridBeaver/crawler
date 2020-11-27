@@ -45,5 +45,5 @@ class TestHTMLParsing(unittest.TestCase):
             raise self.failureException
 
 
-a = TestHTMLParsing()
-a.test_adding_links()
+if __name__ == '__main__':
+    unittest.main()

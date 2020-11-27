@@ -25,8 +25,6 @@ if __name__ == '__main__':
     base_url = args.url
     url = URL(base_url)
     domain_name = get_domain_name(url)
-    queue = Queue()
-    crawled = set()
     robots_parser = RobotsTxtParser(base_url)
     file_worker.create_project_dir('hop')
     spider = Spider(domain_name, base_url, robots_parser, args.deep, args.save)
