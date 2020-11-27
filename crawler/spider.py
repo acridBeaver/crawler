@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from yarl import URL
 from bs4 import BeautifulSoup
 from multiprocessing import Queue
@@ -8,6 +10,29 @@ from multiprocessing.pool import ThreadPool
 import requests
 
 DISALLOW_ENDS = ('.jpg', '.png', '.pptx', '.txt', 'xml')
+
+
+class BaseFilter:
+    @abstractmethod
+    def filter(self, url: str):
+        ...
+
+
+class RobotTxtFilter(BaseFilter):
+    def __init__(self, parser : "RobotTxtParser"):
+        self.parser = parser
+
+    def filter(self, url) -> bool:
+        self.parser
+
+
+class AllowedDomainFilter(BaseFilter):
+    def __init__(self, domains):
+        self.domains = domains
+
+
+    def filter(self, url: str) -> bool:
+        pass
 
 
 class Spider:
@@ -31,6 +56,7 @@ class Spider:
         self.save = save
         self.deep = deep
         self.crawl_page(base_url)
+        self.filters = []
 
     def crawl_page(self, link):
         self.count += 1

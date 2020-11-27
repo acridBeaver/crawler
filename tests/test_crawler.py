@@ -43,7 +43,3 @@ class TestHTMLParsing(unittest.TestCase):
         spider.check_new_links(add_link)
         if spider.queue.get() != 'https://jut.su/10':
             raise self.failureException
-
-
-if __name__ == '__main__':
-    unittest.main()

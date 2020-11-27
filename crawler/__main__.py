@@ -2,7 +2,7 @@ import argparse
 from queue import Queue
 from yarl import URL
 
-from crawler import file_worker
+from crawler import file_worker, errors
 from crawler.robotstxt_parser import RobotsTxtParser
 from crawler.spider import Spider
 
@@ -28,7 +28,13 @@ if __name__ == '__main__':
     domain_name = get_domain_name(url)
     robots_parser = RobotsTxtParser(base_url)
     file_worker.create_project_dir(args.dir)
-    spider = Spider(domain_name, base_url, robots_parser,args.dir, args.deep, args.save)
-    spider.start()
-    file_worker.set_to_file(args.dir + '/crawled.txt', spider.crawled)
+    try
+        spider = Spider(domain_name, base_url, robots_parser,args.dir, args.deep, args.save)
+        spider.start()
+        file_worker.set_to_file(args.dir + '/crawled.txt', spider.crawled)
+    except errors.CrawlerError as e:
+        log.error(e.message)
+    except KeyboardInterrupt:
+
+        exit(1)
     print('task done')

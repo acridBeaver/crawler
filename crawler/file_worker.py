@@ -1,5 +1,9 @@
 import os
+import pathlib
 
+
+path = pathlib.Path.cwd()
+with path.open()
 
 def create_project_dir(dir_name):
     if not os.path.exists(dir_name):
