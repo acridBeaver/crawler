@@ -18,6 +18,7 @@ class Spider:
                  domain_name: str,
                  base_url: str,
                  robots_parser: RobotsTxtParser,
+                 directory: str,
                  deep: int,
                  save: bool):
         self.scheme = URL(base_url).scheme
@@ -26,6 +27,7 @@ class Spider:
         self.queue = Queue()
         self.crawled = []
         self.working_links = set()
+        self.directory = directory + '/'
         self.save = save
         self.deep = deep
         self.crawl_page(base_url)
@@ -34,9 +36,10 @@ class Spider:
         self.count += 1
         self.deep -= 1
         print(str(self.count) + ')crawling: ' + link)
+        self.working_links.add(link)
+        self.crawled.append(link)
         new_links = self.get_links(URL(link))
         self.check_new_links(new_links)
-        self.crawled.append(link)
 
     def check_new_links(self, links):
         for link in links:
@@ -50,10 +53,10 @@ class Spider:
     def get_links(self, url: URL) -> set:
         site_info = self.get_content(str(url))
         if site_info is None or site_info.status_code != 200:
-            set()
+            return set()
         html = site_info.text
         if self.save:
-            file_worker.write_file('hop/' + url.human_repr().replace('/', '') + '.txt', html)
+            file_worker.write_file(self.directory + url.human_repr().replace('/', '') + '.txt', html)
         return self.find_links(html, url)
 
     @staticmethod
