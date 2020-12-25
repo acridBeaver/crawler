@@ -15,6 +15,7 @@ exclude = '''
 '''
 
 [tool.coverage.run]
+source = ["crawler"]
 omit = ["crawler/errors.py", "crawler/__init__.py",
 "tests/*.py", "/usr/local/lib/python3.9/*",
 "crawler/__main__.py", "setup.py"]
