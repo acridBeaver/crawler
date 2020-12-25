@@ -4,7 +4,7 @@ with open("requirements.txt") as f:
     requirements = [x.strip() for x in f]
 
 setuptools.setup(
-    name="crawler",
+    name="Crawler",
     version="3.0",
     author="Litvin Yurii",
     author_email="author@example.com",

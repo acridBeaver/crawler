@@ -1,0 +1,20 @@
+[tool.black]
+line-length=79
+exclude = '''
+/(
+    .git
+  | .hg
+  | .mypy_cache
+  | .tox
+  | .venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.coverage.run]
+omit = ["crawler/errors.py", "crawler/__init__.py",
+"tests/*.py", "/usr/local/lib/python3.9/*",
+"crawler/__main__.py", "setup.py"]
