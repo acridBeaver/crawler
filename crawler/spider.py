@@ -76,13 +76,9 @@ class Spider:
             return set()
         html = site_info.text
         if self.save:
-            self.save_page(url, html)
+            path = Path.cwd() / self.directory / url.host
+            FileWorker.save_link(path, url, html)
         return self.find_links(html, url)
-
-    def save_page(self, url: URL, html: str):
-        path = Path.cwd() / self.directory / url.host
-        path = FileWorker.make_link_dirs(path, url)
-        FileWorker.write_file(path.with_suffix('.txt'), html)
 
     def find_links(self, html: str, url: URL) -> set:
         result = set()
@@ -158,7 +154,7 @@ class FileWorker:
                 os.mkdir(deep_dir)
 
     @staticmethod
-    def make_link_dirs(path, url: URL):
+    def save_link(path, url: URL, html: str):
         if not path.is_dir():
             path.mkdir()
         if len(url.path) > 1:
@@ -170,7 +166,7 @@ class FileWorker:
             path = path/part_link
         else:
             path = path / url.host
-        return path
+        FileWorker.write_file(path.with_suffix('.txt'), html)
 
     @staticmethod
     def write_file(path, data: str):

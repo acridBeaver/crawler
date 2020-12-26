@@ -133,14 +133,6 @@ class TestHTMLParsing(unittest.TestCase):
         if spider.queue.get() != "https://jut.su/10":
             raise self.failureException
 
-    def test_saving_file(self):
-        crawler = Spider("yandex.ru", {"yandex.ru"}, URL("https://yandex.ru"),
-                         "tester", 2, False, 1, ())
-        crawler.save_page(URL("https://yandex.ru"), 'hhhhhhhhhhhhhh')
-        crawler.save_page(URL("https://yandex.ru/help"), 'jjjjjjjjjjj')
-        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.txt')
-        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.ru'/'help.txt')
-
 
 class TestRobotsTXTParsing(unittest.TestCase):
     def test_logic(self):
@@ -177,6 +169,14 @@ class TestFileWorker(unittest.TestCase):
         self.assertTrue(os.path.exists("test_dir"))
         self.assertTrue(os.path.exists("test_dir/kip"))
         self.assertTrue(os.path.exists("test_dir/kap"))
+
+    def test_saving_file(self):
+        fw = FileWorker
+        path = Path.cwd() / 'tests' / 'tester' / 'yandex.ru'
+        fw.save_link(path, URL("https://yandex.ru"), 'hhhhhhhhhhhhhh')
+        fw.save_link(path, URL("https://yandex.ru/help"), 'jjjjjjjjjjj')
+        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.txt')
+        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.ru'/'help.txt')
 
 
 if __name__ == "__main__":
