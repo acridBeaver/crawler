@@ -4,6 +4,7 @@ from collections import namedtuple
 from yarl import URL
 from crawler.spider import Spider, FileWorker
 from crawler.robotstxt_parser import RobotsTxtParser
+from pathlib import Path
 
 fields = ("html", "expected_1", "expected_2")
 TestData = namedtuple("TestData", fields, defaults=(None,) * len(fields))
@@ -55,9 +56,7 @@ class TestHTMLParsing(unittest.TestCase):
             "jut.su",
             {"https://jut.su/", "drive.jut.su"},
             URL("https://jut.su/"),
-            "tests",
-            0,
-            False,
+            "tests", 0, False, 1, ('.txt', '.pptx')
         )
         i = 0
         for test_case in cases:
@@ -77,17 +76,13 @@ class TestHTMLParsing(unittest.TestCase):
             "fuck.biden",
             {"trump.fuck.biden"},
             URL("https://yandex.ru"),
-            "tests",
-            2,
-            False,
+            "tests", 2, False, 1, ()
         )
         spider2 = Spider(
             "fuck.biden",
             {"fuck.biden"},
             URL("https://yandex.ru"),
-            "tests",
-            2,
-            False,
+            "tests", 2, False, 1, ()
         )
         cases = [
             TestData(
@@ -124,9 +119,7 @@ class TestHTMLParsing(unittest.TestCase):
             "jut.su",
             {"https://jut.su/"},
             URL("https://jut.su/"),
-            "tests",
-            0,
-            False,
+            "tests", 0, False, 1, ()
         )
         add_link = set()
         for i in range(10):
@@ -139,6 +132,14 @@ class TestHTMLParsing(unittest.TestCase):
         spider.check_new_links(add_link)
         if spider.queue.get() != "https://jut.su/10":
             raise self.failureException
+
+    def test_saving_file(self):
+        crawler = Spider("yandex.ru", {"yandex.ru"}, URL("https://yandex.ru"),
+                         "tester", 2, False, 1, ())
+        crawler.save_page(URL("https://yandex.ru"), 'hhhhhhhhhhhhhh')
+        crawler.save_page(URL("https://yandex.ru/help"), 'jjjjjjjjjjj')
+        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.txt')
+        self.assertTrue(Path.cwd()/'tests'/'tester'/'yandex.ru'/'help.txt')
 
 
 class TestRobotsTXTParsing(unittest.TestCase):
@@ -167,7 +168,7 @@ class TestRobotsTXTParsing(unittest.TestCase):
 
 class TestFileWorker(unittest.TestCase):
     def test_file_to_set(self):
-        work_set = FileWorker.file_to_set("tests/test.txt")
+        work_set = FileWorker.file_to_set(Path.cwd()/"tests/test.txt")
         expected = {str(i) for i in range(1, 11)}
         self.assertEqual(expected, work_set, "sets")
 

@@ -3,6 +3,7 @@ import os
 import logging
 import requests
 
+from pathlib import Path
 from multiprocessing import Queue
 from multiprocessing.pool import ThreadPool
 from bs4 import BeautifulSoup
@@ -11,12 +12,8 @@ from yarl import URL
 from crawler.robotstxt_parser import RobotsTxtParser
 from crawler.errors import CrawlerError, CantOpenLinkError
 
-DISALLOW_ENDS = (".jpg", ".png", ".pptx", ".txt", "xml")
-
 
 class Spider:
-    pool = ThreadPool(5)
-    count = 0
 
     def __init__(
         self,
@@ -26,6 +23,8 @@ class Spider:
         directory: str,
         deep: int,
         save: bool,
+        pool_count: int,
+        disallow_ends: tuple
     ):
         self.scheme = base_url.scheme
         self.base_domain = base_domain
@@ -33,9 +32,13 @@ class Spider:
         self.queue = Queue()
         self.crawled = []
         self.working_links = set()
+        self.disallow_ends = disallow_ends
         self.directory = directory + "/"
         self.save = save
         self.deep = deep
+        self.count = 0
+
+        self.pool = ThreadPool(pool_count)
 
         self.robots_parser = RobotsTxtParser(base_url.human_repr())
         try:
@@ -73,21 +76,13 @@ class Spider:
             return set()
         html = site_info.text
         if self.save:
-            if url.host in self.domains:
-                FileWorker.write_file(
-                    f"{self.directory}{url.host}"
-                    f'/{url.human_repr().replace("/", "")}.txt',
-                    html,
-                )
-            else:
-                logging.info(f"saving {url.host}")
-                FileWorker.update_dir(f"{self.directory}{url.host}")
-                FileWorker.write_file(
-                    f"{self.directory}{url.host}"
-                    f'/{url.human_repr().replace("/", "")}.txt',
-                    html,
-                )
+            self.save_page(url, html)
         return self.find_links(html, url)
+
+    def save_page(self, url: URL, html: str):
+        path = Path.cwd() / self.directory / url.host
+        path = FileWorker.make_link_dirs(path, url)
+        FileWorker.write_file(path.with_suffix('.txt'), html)
 
     def find_links(self, html: str, url: URL) -> set:
         result = set()
@@ -95,7 +90,7 @@ class Spider:
         soup = BeautifulSoup(html, "html.parser")
         for obj in soup.find_all("a", href=True):
             link = obj["href"].lower()
-            if link.endswith(DISALLOW_ENDS) or link.startswith("#"):
+            if link.endswith(self.disallow_ends) or link.startswith("#"):
                 continue
             link = URL(link)
             if self.check_domains(link) and link.human_repr().startswith(
@@ -162,21 +157,28 @@ class FileWorker:
             if not os.path.exists(deep_dir):
                 os.mkdir(deep_dir)
 
-        if not os.path.exists(f"{dir_name}/{dir_name}"):
-            os.mkdir(f"{dir_name}/{dir_name}")
+    @staticmethod
+    def make_link_dirs(path, url: URL):
+        if not path.is_dir():
+            path.mkdir()
+        if len(url.path) > 1:
+            part_link = ''
+            for part_link in url.path.rsplit('/'):
+                path = path / part_link
+                if not path.is_dir():
+                    path.mkdir()
+            path = path/part_link
+        else:
+            path = path / url.host
+        return path
 
     @staticmethod
-    def update_dir(path: str):
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-    @staticmethod
-    def write_file(path: str, data: str):
+    def write_file(path, data: str):
         with open(path, "w") as file:
             file.write(data)
 
     @staticmethod
-    def file_to_set(file_name: str) -> set:
+    def file_to_set(file_name) -> set:
         result = set()
         with open(file_name, "rt") as text:
             for line in text:
@@ -184,7 +186,7 @@ class FileWorker:
         return result
 
     @staticmethod
-    def set_to_file(file_name: str, urls_set: set):
+    def set_to_file(file_name, urls_set: set):
         with open(file_name, "w") as file:
             for url in urls_set:
                 file.write(url + "\n")

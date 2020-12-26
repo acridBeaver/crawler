@@ -1,5 +1,7 @@
 import argparse
 import logging
+import datetime
+from pathlib import Path
 
 from yarl import URL
 
@@ -21,13 +23,15 @@ def set_up_arguments():
     arg_parser.add_argument(
         "-d", "--deep", type=int, default=99999, help="Глубина поиска"
     )
+    arg_parser.add_argument(
+        "-p", "--pool", type=int, default=5, help="Количество потоков"
+    )
+    arg_parser.add_argument('-e', '--disallow_ends', type=str, nargs='+',
+                            default=(".jpg", ".png", ".pptx", ".txt", "xml"),
+                            help='Редактироваие допустимых окончаний ссылки')
     domains = arg_parser.add_mutually_exclusive_group()
     domains.add_argument(
-        "-D",
-        "--cmd_domain",
-        type=str,
-        action="append",
-        default=[],
+        "-D", "--cmd_domain", type=str, default=False, nargs='+',
         help="установить разрешенные домены." " Формат ввода: <domain>",
     )
     domains.add_argument(
@@ -50,11 +54,11 @@ def get_domains(link: URL) -> (str, set):
     if args.file_domains:
         domains_list = FileWorker.file_to_set("domain_setup.txt")
     if args.dir == "#":
-        args.dir = first_domain
-    FileWorker.create_project_dir(args.dir, domains_list)
+        args.dir = str(datetime.datetime.now())
     if len(domains_list) == 0 or first_domain in domains_list:
         domains_list.clear()
         domains_list.add(first_domain)
+    FileWorker.create_project_dir(args.dir, domains_list)
     return first_domain, domains_list
 
 
@@ -72,12 +76,13 @@ if __name__ == "__main__":
         f"{base_domain} and {allow_domains}," f"url = {url.human_repr()}"
     )
     spider = Spider(
-        base_domain, allow_domains, url, args.dir, args.deep, args.save
-    )
+        base_domain, allow_domains, url, args.dir, args.deep, args.save,
+        args.pool, tuple(args.disallow_ends))
     try:
         spider.start()
     except KeyboardInterrupt:
-        FileWorker.set_to_file(args.dir + "/crawled.txt", spider.crawled)
+        FileWorker.set_to_file(Path.cwd()/args.dir/"crawled.txt",
+                               spider.crawled)
         exit(1)
-    FileWorker.set_to_file(args.dir + "/crawled.txt", spider.crawled)
+    FileWorker.set_to_file(Path.cwd()/args.dir/"crawled.txt", spider.crawled)
     print("task done")
