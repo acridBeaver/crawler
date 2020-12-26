@@ -84,5 +84,6 @@ if __name__ == "__main__":
         FileWorker.set_to_file(Path.cwd()/args.dir/"crawled.txt",
                                spider.crawled)
         exit(1)
+    logging.info(len(spider.crawled))
     FileWorker.set_to_file(Path.cwd()/args.dir/"crawled.txt", spider.crawled)
     print("task done")

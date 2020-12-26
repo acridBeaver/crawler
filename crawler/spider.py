@@ -51,7 +51,7 @@ class Spider:
     def crawl_page(self, link):
         self.count += 1
         self.deep -= 1
-        logging.info(str(self.count) + ")crawling: " + link)
+        logging.info(f'{self.count})crawling: {link}')
         self.working_links.add(link)
         self.crawled.append(link)
         new_links = self.get_links(URL(link))
@@ -97,7 +97,7 @@ class Spider:
                 if not link.human_repr().startswith("/"):
                     result.add(url.human_repr() + link.human_repr())
                 else:
-                    result.add(host_name + link.human_repr())
+                    result.add(f'{host_name}{link.human_repr()}')
         return result
 
     def check_domains(self, link: URL) -> bool:
@@ -135,6 +135,7 @@ class Spider:
             try:
                 url = self.queue.get(timeout=10)
             except queue.Empty:
+                logging.warn('queue.Empty')
                 break
             try:
                 self.pool.apply_async(self.crawl_page, (url,))
@@ -158,12 +159,23 @@ class FileWorker:
         if not path.is_dir():
             path.mkdir()
         if len(url.path) > 1:
-            part_link = ''
+            filename = ''
             for part_link in url.path.rsplit('/'):
-                path = path / part_link
+                if part_link != '':
+                    filename = part_link
+                    path = path / part_link
                 if not path.is_dir():
                     path.mkdir()
-            path = path/part_link
+
+            for query_part in url.query_string.rsplit('?'):
+                if query_part != '':
+                    filename = query_part
+                    path = path / query_part
+                if not path.is_dir():
+                    path.mkdir()
+
+            if filename != '':
+                path = path/filename
         else:
             path = path / url.host
         FileWorker.write_file(path.with_suffix('.txt'), html)
